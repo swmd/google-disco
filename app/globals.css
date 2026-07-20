@@ -1,0 +1,128 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * Design token layer.
+ * Colors are declared as raw RGB channels so Tailwind's <alpha-value> syntax
+ * works and so the whole palette can be re-themed by swapping variables.
+ * Contrast targets: body ink on canvas >= 7:1, muted ink >= 4.5:1 (WCAG AA/AAA).
+ */
+:root {
+  color-scheme: light;
+
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, monospace;
+
+  --canvas: 247 248 250;        /* app background */
+  --surface: 255 255 255;       /* panels/cards */
+  --surface-raised: 255 255 255;
+  --border: 226 230 236;
+  --ink: 17 24 39;              /* primary text (~15:1 on canvas) */
+  --ink-muted: 82 92 108;       /* secondary text (~6:1) */
+  --ink-subtle: 128 138 154;    /* tertiary / captions (~4.6:1) */
+  --accent: 59 110 246;         /* interactive/brand */
+  --accent-soft: 227 236 254;   /* accent-tinted fills */
+  --accent-ink: 255 255 255;    /* text on accent */
+  --positive: 22 148 96;
+  --warning: 197 122 10;
+
+  /* Map tokens */
+  --map-water: 224 233 245;
+  --map-land: 236 240 233;
+  --map-line: 210 217 227;
+}
+
+.dark {
+  color-scheme: dark;
+
+  --canvas: 12 15 22;
+  --surface: 22 27 37;
+  --surface-raised: 28 34 46;
+  --border: 43 51 66;
+  --ink: 236 240 247;
+  --ink-muted: 165 176 193;
+  --ink-subtle: 124 136 155;
+  --accent: 110 150 255;
+  --accent-soft: 34 47 82;
+  --accent-ink: 12 15 22;
+  --positive: 60 194 138;
+  --warning: 226 168 74;
+
+  --map-water: 20 28 44;
+  --map-land: 24 33 40;
+  --map-line: 44 55 74;
+}
+
+* {
+  border-color: rgb(var(--border));
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  background-color: rgb(var(--canvas));
+  color: rgb(var(--ink));
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Visible, consistent keyboard focus ring across the app */
+:where(a, button, input, [tabindex]):focus-visible {
+  outline: none;
+  box-shadow: var(--tw-ring, 0 0 0 3px rgb(var(--accent) / 0.35));
+  border-radius: 0.5rem;
+}
+
+/* Shimmer used by skeleton loaders to signal "runtime generation" */
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.skeleton-shimmer::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgb(var(--ink) / 0.06),
+    transparent
+  );
+  animation: shimmer 1.4s ease-in-out infinite;
+}
+
+/*
+ * Accessibility: honor prefers-reduced-motion globally as a safety net.
+ * Framer Motion is also gated in code via useReducedMotion(), but this
+ * neutralizes any CSS-driven motion (shimmer, transitions) as well.
+ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .skeleton-shimmer::after {
+    animation: none;
+  }
+}
+
+.grain-canvas {
+  background-image: radial-gradient(
+      rgb(var(--ink) / 0.025) 1px,
+      transparent 1px
+    );
+  background-size: 22px 22px;
+}
