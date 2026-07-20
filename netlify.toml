@@ -1,0 +1,19 @@
+# Netlify deployment config.
+#
+# Kept in the repo rather than configured in the dashboard so the deploy is
+# reproducible and reviewable alongside the code.
+#
+# The Next.js Runtime plugin is what lets Netlify serve a `next build` output
+# directly — no `output: 'export'` and no changes to next.config.mjs.
+
+[build]
+  command = "npm run build"
+  publish = ".next"
+
+[build.environment]
+  # Pinned to match the version the project is developed and tested against,
+  # so a change to Netlify's default Node can't break the build unannounced.
+  NODE_VERSION = "22"
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"

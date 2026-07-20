@@ -9,8 +9,13 @@
 engine and the motion choreography. The architecture is deliberately shaped so a
 live LLM streaming JSON could replace the parser without touching the renderer.
 
+🚀 **Live demo:**
+`https://google-disco.netlify.app`
+
 📄 **Full design & technical write-up:** [`docs/DESIGN.md`](docs/DESIGN.md)
 — user-flow diagrams, prompt→UI mapping architecture, and motion strategy.
+
+💻 **Source:** [github.com/swmd/google-disco](https://github.com/swmd/google-disco)
 
 ---
 
@@ -80,6 +85,27 @@ scripts/test-parser.ts  headless engine tests
 
 Detailed component architecture, modular state handling, naming conventions, and
 future-scalability notes live in [`docs/DESIGN.md`](docs/DESIGN.md).
+
+
+## ☁️ Deployment
+
+Deployed on **Netlify** from `main`. Configuration lives in
+[`netlify.toml`](netlify.toml) rather than the dashboard, so the deploy is
+reproducible from the repo alone:
+
+| Setting | Value |
+| --- | --- |
+| Build command | `npm run build` |
+| Publish directory | `.next` |
+| Node version | `22` (pinned; also in [`.nvmrc`](.nvmrc)) |
+| Plugin | `@netlify/plugin-nextjs` |
+
+Every route prerenders as static (`○ Static`) — there is no SSR, no API route and
+no database, so the deployment is a CDN-served build with no runtime dependency.
+
+```bash
+npm run typecheck && npm test && npm run build   # what CI/Netlify effectively runs
+```
 
 
 ## 📌 Scope notes
