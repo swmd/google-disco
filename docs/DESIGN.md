@@ -9,11 +9,11 @@ between states instead of hard-cutting.
 > There is no LLM in the loop. The "intelligence" being demonstrated is the
 > prompt → layout mapping engine and the motion choreography, exactly as the
 > assessment specifies. The architecture is, however, shaped so a live LLM could
-> be dropped in without touching the renderer (see [§7](#7-future-scalability)).
+> be dropped in without touching the renderer.
 
 This document covers the three required areas — **user flow**, **prompt → UI
 mapping architecture**, and **motion design strategy** — plus component
-architecture, accessibility, and future scalability.
+architecture and accessibility.
 
 ---
 
@@ -23,13 +23,13 @@ architecture, accessibility, and future scalability.
 flowchart TD
     A([Land on idle hero]) --> B[Type prompt or click an example chip]
     B --> C{"parsePrompt()"}
-    C -->|no intent + no place| D[Show inline guidance\nkeep current scene]
+    C -->|no intent + no place| D["Show inline guidance<br/>keep current scene"]
     C -->|intent resolved| E["Scene built (layout schema)"]
-    E --> F["phase: parsing\n(status: Understanding…)"]
-    F --> G["phase: generating\n(skeleton / shimmer in panels)"]
-    G --> H["phase: ready\n(staggered reveal of real content)"]
+    E --> F["phase: parsing<br/>(status: Understanding…)"]
+    F --> G["phase: generating<br/>(skeleton / shimmer in panels)"]
+    G --> H["phase: ready<br/>(staggered reveal of real content)"]
     H --> I{User submits another prompt?}
-    I -->|"Yes, related (e.g. flight → hotel)"| J["THE MORPH\nshared panels FLIP into new shape"]
+    I -->|"Yes, related (e.g. flight → hotel)"| J["THE MORPH<br/>shared panels FLIP into new shape"]
     I -->|"Yes, unrelated"| E
     I -->|"Clicks New / brand"| A
     J --> F
@@ -67,13 +67,13 @@ knows about that schema.
 ```mermaid
 flowchart LR
     P["Prompt string"] --> N[Normalize]
-    N --> CL[Classify intent\nweighted keywords]
-    N --> EX[Extract entities\ngazetteer match]
-    CL --> RC[Reconcile\narity + conflicts + fallbacks]
+    N --> CL["Classify intent<br/>weighted keywords"]
+    N --> EX["Extract entities<br/>gazetteer match"]
+    CL --> RC["Reconcile<br/>arity + conflicts + fallbacks"]
     EX --> RC
-    RC --> BLD["Scene builder\n(pure, deterministic)"]
-    BLD --> SC[("Scene\nlayout schema")]
-    SC --> R["Renderer\n(registry-driven)"]
+    RC --> BLD["Scene builder<br/>(pure, deterministic)"]
+    BLD --> SC[("Scene<br/>layout schema")]
+    SC --> R["Renderer<br/>(registry-driven)"]
     R --> UI([Animated UI])
 ```
 
@@ -120,7 +120,7 @@ interface Scene {
 }
 ```
 
-Two schema decisions make the morph possible and the system extensible:
+Three schema decisions make the morph possible and the system extensible:
 
 1. **Stable panel identity.** `DetailPanel.id` is always `"detail"`, regardless
    of variant (`flight | hotel | weather | places`). Same id ⇒ the renderer
@@ -318,7 +318,7 @@ lib/
 
 ---
 
-## Prompt cheatsheet
+## 7. Prompt cheatsheet
 
 | Prompt | Intent | Result |
 |---|---|---|

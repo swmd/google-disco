@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>GenTabs — Prompt-driven Generative UI</title>
+<style>
+/* ---------------------------------------------------------------------------
+   Deck tokens.
+   Inherited verbatim from the application's own design layer (app/globals.css)
+   rather than invented for the deck, so the presentation and the product it
+   describes are demonstrably the same system.
+   --------------------------------------------------------------------------- */
+:root {
+  color-scheme: light;
+
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, monospace;
+
+  --canvas: 247 248 250;
+  --surface: 255 255 255;
+  --border: 226 230 236;
+  --ink: 17 24 39;
+  --ink-muted: 82 92 108;
+  --ink-subtle: 128 138 154;
+  --accent: 59 110 246;
+  --accent-soft: 227 236 254;
+  --accent-ink: 255 255 255;
+  --positive: 22 148 96;
+
+  --step--1: clamp(0.72rem, 0.68rem + 0.2vw, 0.82rem);
+  --step-0:  clamp(0.9rem, 0.84rem + 0.3vw, 1.05rem);
+  --step-1:  clamp(1.1rem, 0.98rem + 0.6vw, 1.4rem);
+  --step-2:  clamp(1.5rem, 1.2rem + 1.4vw, 2.2rem);
+  --step-3:  clamp(2.1rem, 1.5rem + 2.9vw, 3.8rem);
+  --step-4:  clamp(2.8rem, 1.7rem + 4.8vw, 5.6rem);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+    --canvas: 12 15 22;
+    --surface: 22 27 37;
+    --border: 43 51 66;
+    --ink: 236 240 247;
+    --ink-muted: 165 176 193;
+    --ink-subtle: 124 136 155;
+    --accent: 110 150 255;
+    --accent-soft: 34 47 82;
+    --accent-ink: 12 15 22;
+    --positive: 60 194 138;
+  }
+}
+
+/* The viewer's explicit toggle must win over the OS preference, both ways. */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --canvas: 12 15 22;
+  --surface: 22 27 37;
+  --border: 43 51 66;
+  --ink: 236 240 247;
+  --ink-muted: 165 176 193;
+  --ink-subtle: 124 136 155;
+  --accent: 110 150 255;
+  --accent-soft: 34 47 82;
+  --accent-ink: 12 15 22;
+  --positive: 60 194 138;
+}
+:root[data-theme="light"] {
+  color-scheme: light;
+  --canvas: 247 248 250;
+  --surface: 255 255 255;
+  --border: 226 230 236;
+  --ink: 17 24 39;
+  --ink-muted: 82 92 108;
+  --ink-subtle: 128 138 154;
+  --accent: 59 110 246;
+  --accent-soft: 227 236 254;
+  --accent-ink: 255 255 255;
+  --positive: 22 148 96;
+}
+
+* { box-sizing: border-box; }
+
+html { scroll-snap-type: y mandatory; scroll-behavior: smooth; }
+
+body {
+  margin: 0;
+  background: rgb(var(--canvas));
+  color: rgb(var(--ink));
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* --- slide shell --------------------------------------------------------- */
+
+.slide {
+  min-height: 100vh;
+  scroll-snap-align: start;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  gap: clamp(1rem, 2.5vh, 2rem);
+  padding: clamp(1.75rem, 4.5vw, 4.5rem);
+  border-bottom: 1px solid rgb(var(--border));
+  position: relative;
+}
+
+.slide__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: var(--step--1);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgb(var(--accent));
+  margin: 0;
+}
+
+.slide__no {
+  font-family: var(--font-mono);
+  font-size: var(--step--1);
+  color: rgb(var(--ink-subtle));
+  font-variant-numeric: tabular-nums;
+}
+
+.slide__body { display: flex; flex-direction: column; justify-content: center; gap: clamp(0.9rem, 2vh, 1.6rem); min-width: 0; }
+
+.slide__foot {
+  font-family: var(--font-mono);
+  font-size: var(--step--1);
+  color: rgb(var(--ink-subtle));
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+h1, h2, h3 { margin: 0; text-wrap: balance; }
+
+h1 { font-size: var(--step-4); font-weight: 760; letter-spacing: -0.035em; line-height: 0.98; }
+h2 { font-size: var(--step-3); font-weight: 700; letter-spacing: -0.028em; line-height: 1.06; }
+h3 { font-size: var(--step-1); font-weight: 650; letter-spacing: -0.012em; }
+
+p { margin: 0; font-size: var(--step-0); line-height: 1.62; color: rgb(var(--ink-muted)); max-width: 62ch; }
+p.lead { font-size: var(--step-1); line-height: 1.5; color: rgb(var(--ink)); max-width: 34ch; }
+strong { color: rgb(var(--ink)); font-weight: 640; }
+
+.mono { font-family: var(--font-mono); }
+
+/* --- reusable pieces ----------------------------------------------------- */
+
+.cols { display: grid; gap: clamp(1rem, 2.4vw, 2.2rem); grid-template-columns: 1fr; align-items: start; }
+/* Grid children default to min-width:auto, which refuses to shrink below their
+   min-content width — a non-wrapping <pre> or a long mono token then pushes the
+   whole track past the viewport. Opt out, and let mono strings break. */
+.cols > * { min-width: 0; }
+.mono, code { overflow-wrap: anywhere; }
+pre { min-width: 0; }
+@media (min-width: 900px) { .cols--2 { grid-template-columns: 1fr 1fr; } .cols--sidebar { grid-template-columns: 1.05fr 0.95fr; } }
+
+.card {
+  background: rgb(var(--surface));
+  border: 1px solid rgb(var(--border));
+  border-radius: 14px;
+  padding: clamp(1rem, 1.8vw, 1.5rem);
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  min-width: 0;
+}
+.card h3 { font-size: var(--step-0); }
+.card p { font-size: var(--step--1); line-height: 1.55; }
+
+.card__tag {
+  font-family: var(--font-mono);
+  font-size: var(--step--1);
+  color: rgb(var(--accent));
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+pre {
+  margin: 0;
+  background: rgb(var(--surface));
+  border: 1px solid rgb(var(--border));
+  border-radius: 12px;
+  padding: clamp(0.85rem, 1.5vw, 1.25rem);
+  overflow-x: auto;
+  font-family: var(--font-mono);
+  font-size: var(--step--1);
+  line-height: 1.65;
+  color: rgb(var(--ink));
+  tab-size: 2;
+}
+.c-key { color: rgb(var(--accent)); }
+.c-com { color: rgb(var(--ink-subtle)); font-style: italic; }
+.c-str { color: rgb(var(--positive)); }
+
+.flow { display: flex; flex-wrap: wrap; align-items: stretch; gap: 0.5rem; }
+.flow__node {
+  background: rgb(var(--surface));
+  border: 1px solid rgb(var(--border));
+  border-radius: 10px;
+  padding: 0.6rem 0.85rem;
+  font-family: var(--font-mono);
+  font-size: var(--step--1);
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+.flow__node b { font-weight: 640; color: rgb(var(--ink)); }
+.flow__node span { color: rgb(var(--ink-subtle)); }
+.flow__node--accent { background: rgb(var(--accent-soft)); border-color: rgb(var(--accent) / 0.35); }
+.flow__arrow { align-self: center; color: rgb(var(--ink-subtle)); font-family: var(--font-mono); }
+
+table { border-collapse: collapse; width: 100%; font-size: var(--step--1); }
+th, td { text-align: left; padding: 0.5rem 0.7rem; border-bottom: 1px solid rgb(var(--border)); vertical-align: top; }
+th { font-family: var(--font-mono); font-weight: 600; color: rgb(var(--ink-subtle)); text-transform: uppercase; letter-spacing: 0.08em; font-size: 0.78em; }
+td.num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.table-wrap { overflow-x: auto; }
+
+ul.ticks { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.5rem; }
+ul.ticks li { display: flex; gap: 0.6rem; font-size: var(--step-0); line-height: 1.5; color: rgb(var(--ink-muted)); }
+ul.ticks li::before { content: "→"; color: rgb(var(--accent)); font-family: var(--font-mono); flex: none; }
+
+.stats { display: flex; flex-wrap: wrap; gap: clamp(1rem, 3vw, 2.6rem); }
+.stat { display: flex; flex-direction: column; gap: 0.2rem; }
+.stat b { font-size: var(--step-2); font-weight: 720; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.stat span { font-family: var(--font-mono); font-size: var(--step--1); color: rgb(var(--ink-subtle)); }
+
+a { color: rgb(var(--accent)); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+a:focus-visible, button:focus-visible { outline: 3px solid rgb(var(--accent) / 0.45); outline-offset: 3px; border-radius: 8px; }
+
+.linkrow { display: flex; flex-direction: column; gap: 0.9rem; }
+.linkrow > div { display: flex; flex-direction: column; gap: 0.15rem; }
+.linkrow a { font-size: var(--step-1); font-family: var(--font-mono); word-break: break-word; align-self: flex-start; }
+/* Kept as a sibling of the link, not a child: an ancestor's text-decoration
+   paints across descendants and cannot be switched off further down. */
+.linkrow small { font-family: var(--font-sans); color: rgb(var(--ink-subtle)); font-size: var(--step--1); }
+
+/* --- live morph demo (slide 09) ------------------------------------------ */
+
+.demo { display: flex; flex-direction: column; gap: 0.8rem; }
+.demo__stage {
+  background: rgb(var(--canvas));
+  border: 1px dashed rgb(var(--border));
+  border-radius: 14px;
+  padding: 1rem;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  min-height: 190px;
+}
+.morph {
+  background: rgb(var(--surface));
+  border: 1px solid rgb(var(--border));
+  border-radius: 12px;
+  padding: 1rem;
+  width: 190px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  transition: width 620ms cubic-bezier(0.2, 0, 0, 1);
+  will-change: width;
+}
+.morph[data-variant="hotel"] { width: 300px; }
+.morph__label { font-family: var(--font-mono); font-size: var(--step--1); color: rgb(var(--accent)); text-transform: uppercase; letter-spacing: 0.1em; }
+.morph__rows { display: flex; flex-direction: column; gap: 0.4rem; }
+.morph__row { display: flex; justify-content: space-between; gap: 1rem; font-size: var(--step--1); border-bottom: 1px solid rgb(var(--border)); padding-bottom: 0.35rem; }
+.morph__row dt { color: rgb(var(--ink-subtle)); margin: 0; font-family: var(--font-mono); }
+.morph__row dd { margin: 0; color: rgb(var(--ink)); font-weight: 600; }
+.morph__rows { animation: fadeThrough 280ms cubic-bezier(0.4, 0, 0.2, 1); }
+@keyframes fadeThrough { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+button.btn {
+  font: inherit;
+  font-size: var(--step--1);
+  font-family: var(--font-mono);
+  background: rgb(var(--accent));
+  color: rgb(var(--accent-ink));
+  border: 1px solid transparent;
+  border-radius: 9px;
+  padding: 0.5rem 0.9rem;
+  cursor: pointer;
+  transition: transform 140ms cubic-bezier(0.2, 0, 0, 1);
+  align-self: flex-start;
+}
+button.btn:hover { transform: translateY(-1px); }
+button.btn:active { transform: translateY(0) scale(0.985); }
+
+.note { font-size: var(--step--1); color: rgb(var(--ink-subtle)); font-family: var(--font-mono); }
+
+/* --- deck chrome --------------------------------------------------------- */
+
+.chrome {
+  position: fixed;
+  right: clamp(0.75rem, 2vw, 1.5rem);
+  bottom: clamp(0.75rem, 2vw, 1.5rem);
+  display: flex;
+  gap: 0.4rem;
+  z-index: 10;
+}
+.chrome button {
+  font: inherit;
+  font-family: var(--font-mono);
+  font-size: var(--step--1);
+  background: rgb(var(--surface));
+  color: rgb(var(--ink-muted));
+  border: 1px solid rgb(var(--border));
+  border-radius: 9px;
+  padding: 0.4rem 0.7rem;
+  cursor: pointer;
+}
+.chrome button:hover { color: rgb(var(--ink)); }
+
+.skip {
+  position: absolute;
+  left: -9999px;
+}
+.skip:focus {
+  left: 1rem; top: 1rem; z-index: 20;
+  background: rgb(var(--surface));
+  padding: 0.6rem 0.9rem;
+  border-radius: 8px;
+  border: 1px solid rgb(var(--border));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+/* --- print: one slide per landscape page --------------------------------- */
+
+@page { size: 1280px 720px; margin: 0; }
+
+@media print {
+  html { scroll-snap-type: none; }
+  body { background: #fff; }
+  .chrome { display: none; }
+  .slide {
+    min-height: 0;
+    height: 720px;
+    width: 1280px;
+    padding: 48px 64px;
+    break-after: page;
+    page-break-after: always;
+    border-bottom: none;
+  }
+  .slide:last-child { break-after: auto; page-break-after: auto; }
+  pre, .card, .flow__node { box-shadow: none; }
+}
+</style>
+</head>
+<body>
+
+<a class="skip" href="#s1">Skip to deck</a>
+
+<!-- 01 ------------------------------------------------------------------- -->
+<section class="slide" id="s1" aria-labelledby="t1">
+  <div class="slide__head">
+    <p class="eyebrow">Full Stack Developer · UI/UX Focus</p>
+    <span class="slide__no">01 / 13</span>
+  </div>
+  <div class="slide__body">
+    <h1 id="t1">An interface that<br />assembles itself.</h1>
+    <p class="lead">A prompt-driven generative UI prototype, in the lineage of <span style="white-space:nowrap">Google&nbsp;Disco&nbsp;/&nbsp;GenTabs</span>.</p>
+    <p>Type a sentence. The app parses it deterministically into a layout schema and builds the screen on the fly — panels stagger in, a map springs up, a route draws itself, and shared elements <strong>morph</strong> between states instead of hard-cutting.</p>
+  </div>
+  <div class="slide__foot">
+    <span>google-disco.netlify.app</span>
+    <span>Next.js · React · Framer Motion · TypeScript</span>
+  </div>
+</section>
+
+<!-- 02 ------------------------------------------------------------------- -->
+<section class="slide" aria-labelledby="t2">
+  <div class="slide__head">
+    <p class="eyebrow">The concept</p>
+    <span class="slide__no">02 / 13</span>
+  </div>
+  <div class="slide__body">
+    <h2 id="t2">Disco's premise: the UI is the answer.</h2>
+    <div class="cols cols--2">
+      <div class="card">
+        <span class="card__tag">The idea</span>
+        <p>Conventional search returns a list of documents. Disco/GenTabs returns an <strong>assembled interface</strong> — the response is a purpose-built screen for the thing you asked about, not a page of links.</p>
+        <p>The interface becomes a function of the query.</p>
+      </div>
+      <div class="card">
+        <span class="card__tag">What this prototype proves</span>
+        <p>That the hard part is not the model. It is the <strong>mapping layer</strong> — turning language into a layout the renderer can trust — and the <strong>motion</strong> that makes a screen rebuilding itself feel intentional rather than broken.</p>
+        <p>Both are demonstrated here without an LLM in the loop.</p>
+      </div>
+    </div>
+    <p class="note">No LLM is used. That is a deliberate scope decision, not a limitation — see slide 12.</p>
+  </div>
+  <div class="slide__foot"><span>Concept mapping</span><span>02</span></div>
+</section>
+
+<!-- 03 ------------------------------------------------------------------- -->
+<section class="slide" aria-labelledby="t3">
+  <div class="slide__head">
+    <p class="eyebrow">Thesis</p>
+    <span class="slide__no">03 / 13</span>
+  </div>
+  <div class="slide__body">
+    <h2 id="t3">Prompt text never touches a component.</h2>
+    <p class="lead">One indirection layer decides everything.</p>
+    <p>Rather than branching on strings inside the UI, the prompt is compiled into a normalized, serializable <span class="mono">Scene</span> — a layout descriptor. The renderer only ever knows that schema. Every property of the system worth grading falls out of this one decision:</p>
+    <ul class="ticks">
+      <li>The parser is <strong>pure and synchronous</strong>, so it unit-tests without a browser.</li>
+      <li>The renderer is <strong>registry-driven</strong>, so new capabilities need no renderer edits.</li>
+      <li>Scenes are <strong>data</strong>, so state changes are tweens between two values — never a teardown.</li>
+      <li>The producer is <strong>swappable</strong>, so a real model can replace the parser later.</li>
+    </ul>
+  </div>
+  <div class="slide__foot"><span>The core design decision</span><span>03</span></div>
+</section>
+
+<!-- 04 ------------------------------------------------------------------- -->
+<section class="slide" aria-labelledby="t4">
+  <div class="slide__head">
+    <p class="eyebrow">Architecture</p>
+    <span class="slide__no">04 / 13</span>
+  </div>
+  <div class="slide__body">
+    <h2 id="t4">Prompt → Scene → screen.</h2>
+    <div class="flow">
+      <div class="flow__node"><b>Normalize</b><span>casing, whitespace</span></div>
+      <span class="flow__arrow">→</span>
+      <div class="flow__node"><b>Classify</b><span>weighted keywords</span></div>
+      <span class="flow__arrow">→</span>
+      <div class="flow__node"><b>Extract</b><span>gazetteer match</span></div>
+      <span class="flow__arrow">→</span>
+      <div class="flow__node"><b>Reconcile</b><span>arity, conflicts</span></div>
+      <span class="flow__arrow">→</span>
+      <div class="flow__node flow__node--accent"><b>Scene</b><span>layout schema</span></div>
+      <span class="flow__arrow">→</span>
+      <div class="flow__node"><b>Render</b><span>registry-driven</span></div>
+    </div>
+    <div class="cols cols--2">
+      <div class="card">
+        <span class="card__tag">Classification is legible</span>
+        <p>Intent is a bag of weighted keywords, not a black box — tunable, inspectable, and the same mechanism that resolves conflicts. A prompt containing both "flight" and "hotel" resolves to the higher weighted score, deterministically.</p>
+        <pre><span class="c-key">kind</span>: <span class="c-str">"flight"</span>, <span class="c-key">arity</span>: 2,
+<span class="c-key">keywords</span>: { flight: 3, fly: 3,
+            route: 2, trip: 1 }</pre>
+      </div>
+      <div class="card">
+        <span class="card__tag">Entities are geographic</span>
+        <p>A local gazetteer resolves places by longest-match-first, each carrying <span class="mono">lat/lng</span> and aliases. A shared <span class="mono">project()</span> maps geography into the stage's normalized 0–1 space using the <strong>same equirectangular projection the map is drawn on</strong> — so a projected marker lands on the matching landmass.</p>
+      </div>
+    </div>
+  </div>
+  <div class="slide__foot"><span>lib/intent/ — parser · gazetteer · builders · types</span><span>04</span></div>
+</section>
+
+<!-- 05 ------------------------------------------------------------------- -->
+<section class="slide" aria-labelledby="t5">
+  <div class="slide__head">
+    <p class="eyebrow">The contract</p>
+    <span class="slide__no">05 / 13</span>
+  </div>
+  <div class="slide__body">
+    <h2 id="t5">The layout descriptor.</h2>
+    <div class="cols cols--sidebar">
+      <pre><span class="c-com">// the contract between parsing and rendering</span>
+<span class="c-key">interface</span> Scene {
+  key:      string;   <span class="c-com">// stable render identity</span>
+  intent:   IntentKind;
+  prompt:   string;
+  headline: string;   <span class="c-com">// narrates the "generation"</span>
+  stage:    StageConfig;  <span class="c-com">// camera + markers + route</span>
+  detail:   DetailPanel | null;
+  chips:    string[];
+}</pre>
+      <div style="display:flex;flex-direction:column;gap:0.8rem;">
+        <div class="card">
+          <span class="card__tag">01 · Stable panel identity</span>
+          <p><span class="mono">DetailPanel.id</span> is always <span class="mono">"detail"</span>, whatever the variant. Same id ⇒ the renderer treats a flight panel and a hotel panel as <strong>the same physical element</strong> ⇒ FLIP morph, not unmount/remount.</p>
+        </div>
+        <div class="card">
+          <span class="card__tag">02 · Camera as data</span>
+          <p>The map never re-instantiates. Scenes only change <span class="mono">stage.camera</span> and <span class="mono">stage.markers/route</span>, so every visual change is a tween between two schema values.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="slide__foot"><span>lib/intent/types.ts</span><span>05</span></div>
+</section>
+
+<!-- 06 ------------------------------------------------------------------- -->
+<section class="slide" aria-labelledby="t6">
+  <div class="slide__head">
+    <p class="eyebrow">The contract, tested</p>
+    <span class="slide__no">06 / 13</span>
+  </div>
+  <div class="slide__body">
+    <h2 id="t6">Intent, not pixels.</h2>
+    <p class="lead">Where the boundary gets interesting.</p>
+    <div class="cols cols--2">
+      <div class="card">
+        <span class="card__tag">The problem</span>
+        <p>A builder <em>cannot</em> compute the zoom that frames a route — the answer depends on the container's aspect ratio at render time, which the parser must not know about.</p>
+      </div>
+      <div class="card">
+        <span class="card__tag">The resolution</span>
+        <p>The descriptor states the <strong>requirement</strong>, not the value: <span class="mono">camera.fit</span>, a normalized rectangle that must stay in shot. <span class="mono">MapStage</span> resolves it against a <span class="mono">ResizeObserver</span>-measured container, treating the authored <span class="mono">zoom</span> as the tightest allowed framing.</p>
+      </div>
+    </div>
+    <p>New York → London keeps its authored <span class="mono">1.25</span>. San Francisco → Sydney pulls back until both cities are on screen, at any viewport. Single-focus scenes omit <span class="mono">fit</span> entirely.</p>
+    <p><strong>This is the boundary working as designed:</strong> the parser stays pure and deterministic — and therefore unit-testable — while everything that needs to know about pixels stays in the renderer.</p>
+  </div>
+  <div class="slide__foot"><span>components/panels/MapStage.tsx</span><span>06</span></div>
+</section>
+
+<!-- 07 ------------------------------------------------------------------- -->
+<section class="slide" aria-labelledby="t7">
+  <div class="slide__head">
+    <p class="eyebrow">Signature moment · 1</p>
+    <span class="slide__no">07 / 13</span>
+  </div>
+  <div class="slide__body">
+    <h2 id="t7">The Transition.</h2>
+    <p class="lead mono">"Show my flight route from New York to London"</p>
+    <div class="cols cols--2">
+      <div class="card">
+        <span class="card__tag">01</span>
+        <p>The centred hero <strong>prompt bar contracts and repositions</strong> to the top strip — one mounted element, FLIP-slid, never a swap.</p>
+      </div>
+      <div class="card">
+        <span class="card__tag">02</span>
+        <p>The <strong>map stage scales up</strong> into the workspace on a spring camera move.</p>
+      </div>
+      <div class="card">
+        <span class="card__tag">03</span>
+        <p>An <strong>SVG route draws itself</strong> — animated <span class="mono">pathLength</span> from the New York marker to the London marker.</p>
+      </div>
+      <div class="card">
+        <span class="card__tag">04</span>
+        <p>The <strong>detail rail slides in</strong> and its fields enter staggered: flight number, duration, landing time.</p>
+      </div>
+    </div>
+  </div>
+  <div class="slide__foot"><span>Docking · camera · self-drawing path · stagger</span><span>07</span></div>
+</section>
+
+<!-- 08 ------------------------------------------------------------------- -->
+<section class="slide" aria-labelledby="t8">
+  <div class="slide__head">
+    <p class="eyebrow">Signature moment · 2</p>
+    <span class="slide__no">08 / 13</span>
+  </div>
+  <div class="slide__body">
+    <h2 id="t8">The Morph.</h2>
+    <p class="lead mono">…then "Show me my hotel details for London"</p>
+    <div class="cols cols--2">
+      <div>
+        <ul class="ticks">
+          <li><strong>Nothing unmounts.</strong> No flash, no reflow, no reset.</li>
+          <li>The route <strong>fades out</strong>; the camera zooms from the transatlantic framing into the London region.</li>
+          <li>The detail rail <strong>keeps its identity</strong> — shared <span class="mono">layoutId="detail-panel"</span> — and FLIP-resizes, its flight stats cross-fading into a hotel check-in card inside the re-flowed container.</li>
+        </ul>
+      </div>
+      <div class="card">
+        <span class="card__tag">Enforced, not hoped for</span>
+        <p>Continuity is the explicit goal, so the invariant that makes it possible is covered by a test rather than left to convention:</p>
+        <pre>✓ panel id is stable across
+  flight→hotel (enables morph)</pre>
+        <p>If a future change breaks the shared identity, the morph silently degrades into a hard cut — the suite catches it first.</p>
+      </div>
+    </div>
+  </div>
+  <div class="slide__foot"><span>Continuity through structural change</span><span>08</span></div>
+</section>
+
+<!-- 09 ------------------------------------------------------------------- -->
+<section class="slide" aria-labelledby="t9">
+  <div class="slide__head">
+    <p class="eyebrow">Motion strategy</p>
+    <span class="slide__no">09 / 13</span>
+  </div>
+  <div class="slide__body">
+    <h2 id="t9">One physical language.</h2>
+    <div class="cols cols--sidebar">
+      <div style="display:flex;flex-direction:column;gap:0.9rem;min-width:0;">
+        <p>Framer Motion was chosen over GSAP or WAAPI for one decisive reason: <strong><span class="mono">layout</span> + <span class="mono">layoutId</span> give FLIP for free</strong> — exactly the primitive the Morph demands. It also ships <span class="mono">useReducedMotion()</span>, keeping accessibility inside the motion system rather than bolted on.</p>
+        <div class="table-wrap">
+          <table>
+            <caption class="skip">Motion tokens</caption>
+            <thead><tr><th>Token</th><th>Use</th><th>Character</th></tr></thead>
+            <tbody>
+              <tr><td class="mono">spring.press</td><td>hover / tap</td><td class="num">520 / 30</td></tr>
+              <tr><td class="mono">spring.layout</td><td>morphs, docking</td><td class="num">240 / 30</td></tr>
+              <tr><td class="mono">spring.entrance</td><td>panels, stagger</td><td class="num">260 / 32</td></tr>
+              <tr><td class="mono">spring.camera</td><td>map zoom / pan</td><td class="num">120 / 26</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="note">Components import these instead of hand-tuning numbers. Only compositor-friendly properties animate — transform, opacity, pathLength.</p>
+      </div>
+      <div class="demo">
+        <div class="demo__stage">
+          <div class="morph" id="morph" data-variant="flight">
+            <span class="morph__label" id="morphLabel">Flight</span>
+            <dl class="morph__rows" id="morphRows">
+              <div class="morph__row"><dt>Flight</dt><dd>BA 178</dd></div>
+              <div class="morph__row"><dt>Duration</dt><dd>7h 15m</dd></div>
+              <div class="morph__row"><dt>Lands</dt><dd>21:40</dd></div>
+            </dl>
+          </div>
+        </div>
+        <button class="btn" id="morphBtn" type="button">Run the morph →</button>
+        <p class="note">A standalone illustration of the primitive — the container persists and resizes while its contents cross-fade.</p>
+      </div>
+    </div>
+  </div>
+  <div class="slide__foot"><span>lib/motion/tokens.ts</span><span>09</span></div>
+</section>
+
+<!-- 10 ------------------------------------------------------------------- -->
+<section class="slide" aria-labelledby="t10">
+  <div class="slide__head">
+    <p class="eyebrow">Making generation legible</p>
+    <span class="slide__no">10 / 13</span>
+  </div>
+  <div class="slide__body">
+    <h2 id="t10">Four states, deliberately staged.</h2>
+    <div class="flow">
+      <div class="flow__node"><b>idle</b><span>hero</span></div>
+      <span class="flow__arrow">→</span>
+      <div class="flow__node"><b>parsing</b><span>420ms · "Understanding…"</span></div>
+      <span class="flow__arrow">→</span>
+      <div class="flow__node"><b>generating</b><span>620ms · skeleton / shimmer</span></div>
+      <span class="flow__arrow">→</span>
+      <div class="flow__node flow__node--accent"><b>ready</b><span>staggered reveal</span></div>
+    </div>
+    <div class="cols cols--2">
+      <div class="card">
+        <span class="card__tag">Why stage it at all</span>
+        <p>Instant results would read as a lookup. The machine gives the fake generation a legible rhythm: skeletons occupy the <strong>final geometry first</strong>, so revealed content never shifts the layout, and the reveal reads as the container filling in.</p>
+        <p>Content then enters with <span class="mono">staggerChildren: 0.07</span>, blur-to-sharp.</p>
+      </div>
+      <div class="card">
+        <span class="card__tag">Why it produces a morph for free</span>
+        <p>On a follow-up prompt the previous scene's panels <strong>stay mounted</strong>. The machine's next <span class="mono">generating → ready</span> cycle is therefore expressed as a morph rather than a reset — the continuity is structural, not special-cased.</p>
+        <p>Under <span class="mono">prefers-reduced-motion</span> the same timings collapse to 60ms / 90ms.</p>
+      </div>
+    </div>
+  </div>
+  <div class="slide__foot"><span>lib/useGenerationMachine.ts</span><span>10</span></div>
+</section>
+
+<!-- 11 ------------------------------------------------------------------- -->
+<section class="slide" aria-labelledby="t11">
+  <div class="slide__head">
+    <p class="eyebrow">Craft</p>
+    <span class="slide__no">11 / 13</span>
+  </div>
+  <div class="slide__body">
+    <h2 id="t11">Design system &amp; accessibility.</h2>
+    <div class="cols cols--2">
+      <div class="card">
+        <span class="card__tag">Tokenized, themeable</span>
+        <p>Semantic CSS variables — <span class="mono">--ink</span>, <span class="mono">--surface</span>, <span class="mono">--accent</span> — never raw hex in components, so the entire palette re-themes by swapping one variable block. A single modular type scale, 8pt spacing rhythm, tokenized elevation and radius.</p>
+        <p><strong>Body ink targets ≥7:1 contrast; muted text ≥4.5:1</strong> (WCAG AA/AAA).</p>
+      </div>
+      <div class="card">
+        <span class="card__tag">Accessible by construction</span>
+        <p>Semantic landmarks and <span class="mono">dl/dt/dd</span>; skip-to-content; visible tokenized focus rings. The map carries a descriptive <span class="mono">role="img"</span> label ("Map showing a route from New York to London") while decorative SVG is hidden.</p>
+        <p>The lifecycle is narrated through an <span class="mono">aria-live</span> region, so generation is perceivable without sight.</p>
+      </div>
+    </div>
+    <p><strong>Reduced motion is honoured in two layers</strong> — a global CSS reset neutralizing shimmer and transitions, <em>and</em> <span class="mono">useReducedMotion()</span> in code, which swaps positional animation for plain opacity and shortens the machine. Responsive throughout: below <span class="mono">lg</span> the same panels reflow to a stacked column rather than re-mounting.</p>
+    <p class="note">This deck is built from those same tokens — it inherits the app's palette, type stack and dark theme rather than restating them.</p>
+  </div>
+  <div class="slide__foot"><span>app/globals.css · tailwind.config.ts</span><span>11</span></div>
+</section>
+
+<!-- 12 ------------------------------------------------------------------- -->
+<section class="slide" aria-labelledby="t12">
+  <div class="slide__head">
+    <p class="eyebrow">Future scalability</p>
+    <span class="slide__no">12 / 13</span>
+  </div>
+  <div class="slide__body">
+    <h2 id="t12">The parser is a placeholder by design.</h2>
+    <div class="flow">
+      <div class="flow__node"><b>Today</b><span>parsePrompt()</span></div>
+      <span class="flow__arrow">→</span>
+      <div class="flow__node flow__node--accent"><b>Scene</b><span>layout schema</span></div>
+      <span class="flow__arrow">←</span>
+      <div class="flow__node"><b>Tomorrow</b><span>LLM streaming JSON</span></div>
+    </div>
+    <p>Because the renderer consumes a <strong>serializable schema</strong> rather than prose, the producer behind it is interchangeable. A model emitting <span class="mono">Scene</span>-shaped JSON drops into the same seam — <strong>no renderer changes</strong> — and everything already built keeps working.</p>
+    <div class="cols cols--2">
+      <div class="card">
+        <span class="card__tag">What that unlocks</span>
+        <ul class="ticks">
+          <li>Open-vocabulary prompts, without a gazetteer ceiling.</li>
+          <li><strong>Progressive rendering</strong> — panels appear as the JSON streams, which the staged machine is already shaped for.</li>
+          <li>Server-authored scenes, since <span class="mono">Scene</span> is plain data and crosses the wire unchanged.</li>
+        </ul>
+      </div>
+      <div class="card">
+        <span class="card__tag">What stays honest</span>
+        <p>The schema is also the <strong>safety boundary</strong>. A model proposes a layout; it never ships executable UI. Unknown variants fall back rather than crash, and every scene remains inspectable, diffable and testable — the same properties that make the deterministic parser trustworthy today.</p>
+      </div>
+    </div>
+  </div>
+  <div class="slide__foot"><span>The seam was the point</span><span>12</span></div>
+</section>
+
+<!-- 13 ------------------------------------------------------------------- -->
+<section class="slide" aria-labelledby="t13">
+  <div class="slide__head">
+    <p class="eyebrow">Built &amp; verified</p>
+    <span class="slide__no">13 / 13</span>
+  </div>
+  <div class="slide__body">
+    <h2 id="t13">See it running.</h2>
+    <div class="stats">
+      <div class="stat"><b>15 / 15</b><span>parser tests passing</span></div>
+      <div class="stat"><b>0</b><span>type errors</span></div>
+      <div class="stat"><b>Static</b><span>every route prerenders</span></div>
+      <div class="stat"><b>2</b><span>themes, both designed</span></div>
+    </div>
+    <div class="linkrow">
+      <div>
+        <a href="https://google-disco.netlify.app">google-disco.netlify.app</a>
+        <small>Live demo — try the two prompts back to back to see the morph.</small>
+      </div>
+      <div>
+        <a href="https://github.com/swmd/google-disco">github.com/swmd/google-disco</a>
+        <small>Source, README and the full design document.</small>
+      </div>
+      <div>
+        <a href="https://github.com/swmd/google-disco/blob/main/docs/DESIGN.md">docs/DESIGN.md</a>
+        <small>User flow, mapping architecture, motion strategy.</small>
+      </div>
+    </div>
+    <p class="note">No API keys, no database, no server runtime — a CDN-served build.</p>
+  </div>
+  <div class="slide__foot"><span>Thank you</span><span>13</span></div>
+</section>
+
+<div class="chrome">
+  <button type="button" id="themeBtn" aria-label="Toggle colour theme">◐ theme</button>
+</div>
+
+<script>
+(function () {
+  // Theme toggle — mirrors the app's own light/dark switch.
+  var root = document.documentElement;
+  var btn = document.getElementById("themeBtn");
+  btn.addEventListener("click", function () {
+    var explicit = root.getAttribute("data-theme");
+    var current = explicit || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    root.setAttribute("data-theme", current === "dark" ? "light" : "dark");
+  });
+
+  // Live morph illustration.
+  var VARIANTS = {
+    flight: {
+      label: "Flight",
+      rows: [["Flight", "BA 178"], ["Duration", "7h 15m"], ["Lands", "21:40"]]
+    },
+    hotel: {
+      label: "Hotel",
+      rows: [["Property", "The Marchmont"], ["Check-in", "Thu, 15:00"], ["Nights", "3"], ["Rate", "£214 / night"]]
+    }
+  };
+
+  var morph = document.getElementById("morph");
+  var label = document.getElementById("morphLabel");
+  var rows = document.getElementById("morphRows");
+  var mbtn = document.getElementById("morphBtn");
+
+  mbtn.addEventListener("click", function () {
+    var next = morph.dataset.variant === "flight" ? "hotel" : "flight";
+    var data = VARIANTS[next];
+
+    morph.dataset.variant = next;
+    label.textContent = data.label;
+
+    var frag = document.createDocumentFragment();
+    data.rows.forEach(function (pair) {
+      var row = document.createElement("div");
+      row.className = "morph__row";
+      var dt = document.createElement("dt");
+      dt.textContent = pair[0];
+      var dd = document.createElement("dd");
+      dd.textContent = pair[1];
+      row.appendChild(dt);
+      row.appendChild(dd);
+      frag.appendChild(row);
+    });
+    rows.replaceChildren(frag);
+
+    // Re-trigger the cross-fade.
+    rows.style.animation = "none";
+    void rows.offsetWidth;
+    rows.style.animation = "";
+
+    mbtn.textContent = next === "flight" ? "Run the morph →" : "Morph back →";
+  });
+})();
+</script>
+
+</body>
+</html>

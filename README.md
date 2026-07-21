@@ -9,11 +9,15 @@
 engine and the motion choreography. The architecture is deliberately shaped so a
 live LLM streaming JSON could replace the parser without touching the renderer.
 
-🚀 **Live demo:**
-`https://google-disco.netlify.app`
+🚀 **Live demo:** [google-disco.netlify.app](https://google-disco.netlify.app)
 
 📄 **Full design & technical write-up:** [`docs/DESIGN.md`](docs/DESIGN.md)
 — user-flow diagrams, prompt→UI mapping architecture, and motion strategy.
+
+🎞️ **Slide deck:** [`docs/deck.pdf`](docs/deck.pdf) — 13 slides on the technical
+narrative, the Disco concept mapping, and future scalability. Also readable in the
+browser as [`docs/deck.html`](docs/deck.html), where the motion slide runs a live
+morph demo.
 
 💻 **Source:** [github.com/swmd/google-disco](https://github.com/swmd/google-disco)
 
@@ -80,12 +84,17 @@ lib/intent/   parser · gazetteer · builders · types  (prompt → Scene schema
 lib/motion/   spring/easing profiles + shared variants
 lib/useGenerationMachine.ts   generation lifecycle state machine
 docs/DESIGN.md  full technical document
+docs/deck.html  slide deck (self-contained; deck.pdf is printed from it)
 scripts/test-parser.ts  headless engine tests
 ```
 
-Detailed component architecture, modular state handling, naming conventions, and
-future-scalability notes live in [`docs/DESIGN.md`](docs/DESIGN.md).
+Detailed component architecture, modular state handling, and naming conventions
+live in [`docs/DESIGN.md`](docs/DESIGN.md).
 
+The deck is a single dependency-free HTML file that inherits the app's own design
+tokens from [`app/globals.css`](app/globals.css), so it re-themes with the product
+rather than restating its palette. Regenerate the PDF by printing it to a
+1280×720 page.
 
 ## ☁️ Deployment
 
@@ -106,7 +115,6 @@ no database, so the deployment is a CDN-served build with no runtime dependency.
 ```bash
 npm run typecheck && npm test && npm run build   # what CI/Netlify effectively runs
 ```
-
 
 ## 📌 Scope notes
 
