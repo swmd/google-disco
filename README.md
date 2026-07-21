@@ -23,6 +23,12 @@ morph demo.
 
 ---
 
+![The GenTabs interface after the prompt "Show my flight route from New York to London": the prompt bar is docked to the top strip, a stylized world map shows a drawn route from a New York marker to a London marker, and a flight detail rail lists flight number, duration, times and a boarding timeline.](docs/shots/02-transition.png)
+
+<p align="center"><em>“Show my flight route from New York to London” — parsed, mapped, and rendered on the fly.</em></p>
+
+---
+
 ## ✨ Highlights
 
 - **Prompt → layout schema → animated render.** A pure, testable intent parser

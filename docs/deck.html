@@ -298,6 +298,17 @@ button.btn:active { transform: translateY(0) scale(0.985); }
 
 .note { font-size: var(--step--1); color: rgb(var(--ink-subtle)); font-family: var(--font-mono); }
 
+figure.shot { margin: 0; display: flex; flex-direction: column; gap: 0.55rem; min-width: 0; }
+figure.shot img {
+  width: 100%;
+  height: auto;
+  display: block;
+  border: 1px solid rgb(var(--border));
+  border-radius: 12px;
+}
+figure.shot figcaption { font-size: var(--step--1); line-height: 1.5; color: rgb(var(--ink-muted)); }
+figure.shot figcaption b { color: rgb(var(--ink)); font-weight: 640; }
+
 /* --- deck chrome --------------------------------------------------------- */
 
 .chrome {
@@ -372,7 +383,7 @@ button.btn:active { transform: translateY(0) scale(0.985); }
 <section class="slide" id="s1" aria-labelledby="t1">
   <div class="slide__head">
     <p class="eyebrow">Full Stack Developer · UI/UX Focus</p>
-    <span class="slide__no">01 / 13</span>
+    <span class="slide__no">01 / 14</span>
   </div>
   <div class="slide__body">
     <h1 id="t1">An interface that<br />assembles itself.</h1>
@@ -389,7 +400,7 @@ button.btn:active { transform: translateY(0) scale(0.985); }
 <section class="slide" aria-labelledby="t2">
   <div class="slide__head">
     <p class="eyebrow">The concept</p>
-    <span class="slide__no">02 / 13</span>
+    <span class="slide__no">02 / 14</span>
   </div>
   <div class="slide__body">
     <h2 id="t2">Disco's premise: the UI is the answer.</h2>
@@ -414,7 +425,7 @@ button.btn:active { transform: translateY(0) scale(0.985); }
 <section class="slide" aria-labelledby="t3">
   <div class="slide__head">
     <p class="eyebrow">Thesis</p>
-    <span class="slide__no">03 / 13</span>
+    <span class="slide__no">03 / 14</span>
   </div>
   <div class="slide__body">
     <h2 id="t3">Prompt text never touches a component.</h2>
@@ -434,7 +445,7 @@ button.btn:active { transform: translateY(0) scale(0.985); }
 <section class="slide" aria-labelledby="t4">
   <div class="slide__head">
     <p class="eyebrow">Architecture</p>
-    <span class="slide__no">04 / 13</span>
+    <span class="slide__no">04 / 14</span>
   </div>
   <div class="slide__body">
     <h2 id="t4">Prompt → Scene → screen.</h2>
@@ -472,7 +483,7 @@ button.btn:active { transform: translateY(0) scale(0.985); }
 <section class="slide" aria-labelledby="t5">
   <div class="slide__head">
     <p class="eyebrow">The contract</p>
-    <span class="slide__no">05 / 13</span>
+    <span class="slide__no">05 / 14</span>
   </div>
   <div class="slide__body">
     <h2 id="t5">The layout descriptor.</h2>
@@ -506,7 +517,7 @@ button.btn:active { transform: translateY(0) scale(0.985); }
 <section class="slide" aria-labelledby="t6">
   <div class="slide__head">
     <p class="eyebrow">The contract, tested</p>
-    <span class="slide__no">06 / 13</span>
+    <span class="slide__no">06 / 14</span>
   </div>
   <div class="slide__body">
     <h2 id="t6">Intent, not pixels.</h2>
@@ -531,7 +542,7 @@ button.btn:active { transform: translateY(0) scale(0.985); }
 <section class="slide" aria-labelledby="t7">
   <div class="slide__head">
     <p class="eyebrow">Signature moment · 1</p>
-    <span class="slide__no">07 / 13</span>
+    <span class="slide__no">07 / 14</span>
   </div>
   <div class="slide__body">
     <h2 id="t7">The Transition.</h2>
@@ -562,7 +573,7 @@ button.btn:active { transform: translateY(0) scale(0.985); }
 <section class="slide" aria-labelledby="t8">
   <div class="slide__head">
     <p class="eyebrow">Signature moment · 2</p>
-    <span class="slide__no">08 / 13</span>
+    <span class="slide__no">08 / 14</span>
   </div>
   <div class="slide__body">
     <h2 id="t8">The Morph.</h2>
@@ -588,10 +599,32 @@ button.btn:active { transform: translateY(0) scale(0.985); }
 </section>
 
 <!-- 09 ------------------------------------------------------------------- -->
+<section class="slide" aria-labelledby="t9s">
+  <div class="slide__head">
+    <p class="eyebrow">The prototype, running</p>
+    <span class="slide__no">09 / 14</span>
+  </div>
+  <div class="slide__body">
+    <h2 id="t9s">Two prompts, back to back.</h2>
+    <div class="cols cols--2">
+      <figure class="shot">
+        <img src="shots/02-transition.png" alt="The GenTabs interface after the flight prompt: the prompt bar is docked to the top strip, a stylized world map fills the stage with a drawn route arcing from a New York marker to a London marker, and a flight detail rail on the right shows BA 1399, a ten-hour duration, departure and arrival times, and a boarding timeline." />
+        <figcaption><b>The Transition</b> — prompt bar docked, camera framed to the route, SVG path drawn, detail rail staggered in.</figcaption>
+      </figure>
+      <figure class="shot">
+        <img src="shots/03-morph.png" alt="The same interface after the follow-up hotel prompt: the map has zoomed into the London region, the route is gone, and the same right-hand rail now shows The Regent London, its street address, check-in and check-out times, room type, and a booking timeline." />
+        <figcaption><b>The Morph</b> — same rail, same mount. Route retired, camera zoomed to London, contents cross-faded to the hotel card.</figcaption>
+      </figure>
+    </div>
+  </div>
+  <div class="slide__foot"><span>Captured from the running app at 1440×900 · google-disco.netlify.app</span><span>09</span></div>
+</section>
+
+<!-- 09 ------------------------------------------------------------------- -->
 <section class="slide" aria-labelledby="t9">
   <div class="slide__head">
     <p class="eyebrow">Motion strategy</p>
-    <span class="slide__no">09 / 13</span>
+    <span class="slide__no">10 / 14</span>
   </div>
   <div class="slide__body">
     <h2 id="t9">One physical language.</h2>
@@ -628,14 +661,14 @@ button.btn:active { transform: translateY(0) scale(0.985); }
       </div>
     </div>
   </div>
-  <div class="slide__foot"><span>lib/motion/tokens.ts</span><span>09</span></div>
+  <div class="slide__foot"><span>lib/motion/tokens.ts</span><span>10</span></div>
 </section>
 
 <!-- 10 ------------------------------------------------------------------- -->
 <section class="slide" aria-labelledby="t10">
   <div class="slide__head">
     <p class="eyebrow">Making generation legible</p>
-    <span class="slide__no">10 / 13</span>
+    <span class="slide__no">11 / 14</span>
   </div>
   <div class="slide__body">
     <h2 id="t10">Four states, deliberately staged.</h2>
@@ -661,14 +694,14 @@ button.btn:active { transform: translateY(0) scale(0.985); }
       </div>
     </div>
   </div>
-  <div class="slide__foot"><span>lib/useGenerationMachine.ts</span><span>10</span></div>
+  <div class="slide__foot"><span>lib/useGenerationMachine.ts</span><span>11</span></div>
 </section>
 
 <!-- 11 ------------------------------------------------------------------- -->
 <section class="slide" aria-labelledby="t11">
   <div class="slide__head">
     <p class="eyebrow">Craft</p>
-    <span class="slide__no">11 / 13</span>
+    <span class="slide__no">12 / 14</span>
   </div>
   <div class="slide__body">
     <h2 id="t11">Design system &amp; accessibility.</h2>
@@ -687,14 +720,14 @@ button.btn:active { transform: translateY(0) scale(0.985); }
     <p><strong>Reduced motion is honoured in two layers</strong> — a global CSS reset neutralizing shimmer and transitions, <em>and</em> <span class="mono">useReducedMotion()</span> in code, which swaps positional animation for plain opacity and shortens the machine. Responsive throughout: below <span class="mono">lg</span> the same panels reflow to a stacked column rather than re-mounting.</p>
     <p class="note">This deck is built from those same tokens — it inherits the app's palette, type stack and dark theme rather than restating them.</p>
   </div>
-  <div class="slide__foot"><span>app/globals.css · tailwind.config.ts</span><span>11</span></div>
+  <div class="slide__foot"><span>app/globals.css · tailwind.config.ts</span><span>12</span></div>
 </section>
 
 <!-- 12 ------------------------------------------------------------------- -->
 <section class="slide" aria-labelledby="t12">
   <div class="slide__head">
     <p class="eyebrow">Future scalability</p>
-    <span class="slide__no">12 / 13</span>
+    <span class="slide__no">13 / 14</span>
   </div>
   <div class="slide__body">
     <h2 id="t12">The parser is a placeholder by design.</h2>
@@ -721,14 +754,14 @@ button.btn:active { transform: translateY(0) scale(0.985); }
       </div>
     </div>
   </div>
-  <div class="slide__foot"><span>The seam was the point</span><span>12</span></div>
+  <div class="slide__foot"><span>The seam was the point</span><span>13</span></div>
 </section>
 
 <!-- 13 ------------------------------------------------------------------- -->
 <section class="slide" aria-labelledby="t13">
   <div class="slide__head">
     <p class="eyebrow">Built &amp; verified</p>
-    <span class="slide__no">13 / 13</span>
+    <span class="slide__no">14 / 14</span>
   </div>
   <div class="slide__body">
     <h2 id="t13">See it running.</h2>
@@ -754,7 +787,7 @@ button.btn:active { transform: translateY(0) scale(0.985); }
     </div>
     <p class="note">No API keys, no database, no server runtime — a CDN-served build.</p>
   </div>
-  <div class="slide__foot"><span>Thank you</span><span>13</span></div>
+  <div class="slide__foot"><span>Thank you</span><span>14</span></div>
 </section>
 
 <div class="chrome">
